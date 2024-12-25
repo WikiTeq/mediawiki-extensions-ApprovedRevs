@@ -443,6 +443,18 @@ class ApprovedRevs {
 			} else {
 				$approverUsers = array_map( 'User::getCanonicalName', explode( ',', $result ) );
 			}
+			# Check for renamed users, CELLP-37
+			if ( $dbr->tableExists( 'renamed_users' ) ) {
+				$renamedUsers = $dbr->selectField(
+					'renamed_users',
+					'user_old_name',
+					[ 'user_new_name' => $approverUsers ],
+					__METHOD__
+				);
+				if ( $renamedUsers ) {
+					$approverUsers = array_merge( $approverUsers, $renamedUsers );
+				}
+			}
 			if ( in_array( $user->getName(), $approverUsers ) ) {
 				return true;
 			}
